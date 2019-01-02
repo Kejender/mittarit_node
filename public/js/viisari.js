@@ -1,90 +1,97 @@
-console.log("start");
+window.onload = function () {
+  // valitaan svg-mittarit
+  const s1 = Snap('#mittari1');
+  const s2 = Snap('#mittari2');
+  const s3 = Snap('#mittari3');
 
-window.onload = function() {
+  // valitaan mittareiden animoitavat osat
+  const viisari = s1.select('#viisari');
+  const tanko = s3.select('#tanko');
+  const valo = s2.select('#valo');
 
-// valitaan svg-mittarit
-var s1 = Snap("#mittari1");
-var s2 = Snap("#mittari2");
-var s3 = Snap("#mittari3");
+  // vesimittarin parametreja
+  let korkeus = 10;
+  var tanko_y = tanko.attr('y');
+  var tanko_y = tanko_y * 1;
 
-// valitaan mittareiden animoitavat osat
-var viisari = s1.select("#viisari");
-var tankom = s3.select("#tankom");
-var tanko = s3.select("#tanko");
-var valo = s2.select("#valo");
-var valomittari = s2.select("#valomittari");
-var korkeus = 10;
-var tanko_y = tanko.attr("y");
-var tanko_y = tanko_y*1;
+  // initialisointia
+  valo.attr({ fill: '#b43831' }); // punainen valo
+  tanko.attr({ height: korkeus });
 
-var screen_orient = screen.orientation;
+  // animaatiomatriiseja
+  const valoMatrix = new Snap.Matrix();
+  const valoMatrixReset = new Snap.Matrix();
+  const tankoMatrix = new Snap.Matrix();
+  const tankoMatrixReset = new Snap.Matrix();
+  const tankoMatrix0 = new Snap.Matrix();
 
-valo.attr({fill: "#b43831"});
-tanko.attr({height: korkeus+"px" });
+  tankoMatrix0.translate(-374.28254, 184.83979);
+  valoMatrix.translate(-207.76816, 203.9206);
+  valoMatrixReset.translate(0, 0);
+  tankoMatrix.translate(-382.83208, 371.28941);
+  tankoMatrixReset.translate(43.285031, -25.971017);
 
-var valoMatrix = new Snap.Matrix();
-var valoMatrixReset = new Snap.Matrix();
-var tankoMatrix = new Snap.Matrix();
-var tankoMatrixReset = new Snap.Matrix();
-var tankoMatrix0 = new Snap.Matrix();
+  // luvut animointia varten jotta päästään alkuun, korvataan luvuilla jotka ladataan json-tiedostosta
+  const lukemat = {
+    a: [50, 60, 40, 20, 80, 30, 90],
+  };
 
-tankoMatrix0.translate(-374.28254,184.83979);
-valoMatrix.translate(-207.76816,203.9206);
-valoMatrixReset.translate(0,0);
-tankoMatrix.translate(-382.83208,371.28941);
-tankoMatrixReset.translate(43.285031,-25.971017);
+  let vii_index = 0;
+  let vii_length = lukemat.a.length;
 
-var lukemat = {
-"a": [50, 60, 40, 20, 80, 30, 90]
-};
+  // valomerkki, punainen kun json-data ladataan
+  function valomerkki(valopaalle) {
+    if (valopaalle == true) {
+      valo.animate({ fill: '#b43831' }, 700, lataus); // valo päälle
+    } else {
+      valo.animate({ fill: '#d8d9da' }, 700); // valo pois
+    }
+  }
 
-var vii_index = 0;
-var vii_length = lukemat.a.length;
+  var lataus = function lataus() {
+    $.getJSON("lukemat2.json", function(tulos){
+      lukemat.a = tulos.a;
+      vii_length = tulos.a.length;
+      valomerkki(false); // valo pois
+    });
+  };
 
-var lataus = function lataus(){
+  function paivita() {
+    valomerkki(true);
+  }
 
-$.getJSON("lukemat2.json", function(tulos){
-console.log("tulos "+tulos.a[3]);
-lukemat.a = tulos.a;
-vii_length = tulos.a.length;
-valo.animate({fill: "#d8d9da"}, 700);
-});
+  // valo pois alkuun
+  paivita(false);
 
-}
+  const bbox = viisari.getBBox(); // bounding box, get coords and centre
 
-function paivita(){
-valo.animate({fill: "#b43831"}, 700, lataus);
-}
+  // neliönmuotoisen vesimittarin päivitys, kutsutaan viiCounterista kun lukemat-taulukko on käyty läpi
+  function vesimittari() {
+    // päivitetään mittarin korkeus, y-koordinaattia pitää pienentää
+    korkeus += 10;
+    tanko_y -= 10;
 
-paivita();
+    if (korkeus == 120) {
+      korkeus = 10;
+      tanko_y = 1036;
+    }
 
-var avaimet = Object.keys(lukemat);
-var bbox = viisari.getBBox(); //bounding box, get coords and centre
+    tanko.animate({ height: korkeus }, 2000);
+    tanko.animate({ y: tanko_y }, 2000);
+  }
 
-function viiCounter(){
+  // viisarin animointi lukemataulukon mukaan
+  function viiCounter() {
+	viisari.animate({ transform: "r"+lukemat.a[vii_index]+"," + bbox.cx + ',' + bbox.cy + "s1,1," + bbox.cx + "," + bbox.cy}, 300);
 
-viisari.animate({ transform: "r"+lukemat.a[vii_index]+"," + bbox.cx + ',' + bbox.cy + "s1,1," + bbox.cx + "," + bbox.cy}, 300);
+    if (vii_index == vii_length) {
+      vii_index = 0;
+      vesimittari();
+    } else {
+      vii_index += 1;
+    }
+  } // viiCounter
 
-if (vii_index == vii_length){
-vii_index = 0;
-korkeus = korkeus+10;
-tanko_y = tanko_y-10;
-
-if (korkeus == 100)
-{
-korkeus = 10;
-tanko_y = 1036;}
-else{
-tanko.animate({height: korkeus+"px"}, 300);
-tanko.animate({y: tanko_y+"px"}, 300);}
-
-}
-else{
-vii_index+=1;
-}
-
-} //viiCounter
-
-var animdelay = setInterval(viiCounter, 300);
-var updatedelay = setInterval(paivita, 5000);
+  const animdelay = setInterval(viiCounter, 300);
+  const updatedelay = setInterval(paivita, 5000);
 };
