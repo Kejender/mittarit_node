@@ -42,7 +42,7 @@ window.onload = function () {
   // valomerkki, punainen kun json-data ladataan
   function valomerkki(valopaalle) {
     if (valopaalle == true) {
-      valo.animate({ fill: '#b43831' }, 700, lataus); // valo päälle
+      valo.animate({ fill: '#b43831' }, 700, lataus); // valo päälle, HUOM lataus
     } else {
       valo.animate({ fill: '#d8d9da' }, 700); // valo pois
     }
@@ -61,7 +61,7 @@ window.onload = function () {
   }
 
   // valo pois alkuun
-  paivita(false);
+  valomerkki(false);
 
   const bbox = viisari.getBBox(); // bounding box, get coords and centre
 
